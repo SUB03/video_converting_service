@@ -23,6 +23,7 @@ venv/
 .DS_Store
 
 # Local video files
+videos/
 *.mp4
 *.mov
 *.mkv

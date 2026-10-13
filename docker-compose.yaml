@@ -46,6 +46,16 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: frontend
+      args:
+        API_URL: http://video_converter:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - video_converter
+
 volumes:
   postgres-data:
   rabbitmq-data:

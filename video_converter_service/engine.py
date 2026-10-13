@@ -2,9 +2,7 @@ from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from video_converter_service.config import Settings
-
-settings = Settings()
+from video_converter_service.config import settings
 
 engine = create_async_engine(
     str(settings.database_url),

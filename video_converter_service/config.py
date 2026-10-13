@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 
 from pydantic import AmqpDsn, PostgresDsn
@@ -10,6 +11,8 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     rabbitmq_url: AmqpDsn
     db_echo: bool = False
+    video_dir: Path = Path("/data/videos")
+    video_ttl: datetime.timedelta = datetime.timedelta(minutes=1)  # env: VIDEO_TTL=60 or PT1M
 
 
 settings = Settings()
