@@ -7,7 +7,8 @@ A learning project. It currently contains a FastAPI video converter service back
 | Service           | Port         | Description                                        |
 |-------------------|--------------|----------------------------------------------------|
 | `frontend`        | 3000         | TanStack Start app; proxies `/api/*` to `video_converter` |
-| `video_converter` | 8000         | FastAPI app that accepts video uploads (ffmpeg included in the image) |
+| `video_converter` | 8000         | FastAPI app that accepts video uploads (ffmpeg included in the image); runs the outbox relay in the background |
+| `celery_worker`   | –            | Celery worker consuming `convert_video` tasks from the `video.convert` queue (placeholder: only logs) |
 | `postgres`        | 5432         | PostgreSQL 17, for job state and the outbox table  |
 | `rabbitmq`        | 5672, 15672  | RabbitMQ 4 message broker for conversion jobs; management UI on 15672 |
 

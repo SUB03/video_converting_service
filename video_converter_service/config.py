@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     db_echo: bool = False
     video_dir: Path = Path("/data/videos")
     video_ttl: datetime.timedelta = datetime.timedelta(minutes=1)  # env: VIDEO_TTL=60 or PT1M
+    outbox_batch_size: int = 100
+    outbox_poll_interval: float = 1.0  # seconds
+    convert_queue: str = "video.convert"
 
 
 settings = Settings()

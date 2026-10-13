@@ -46,6 +46,22 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: video_converter_service/Dockerfile
+    command: celery -A video_converter_service.worker:celery_app worker -Q video.convert --without-mingle --without-gossip --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/video_converter
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    volumes:
+      - videos:/data/videos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   frontend:
     build:
       context: frontend

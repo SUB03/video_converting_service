@@ -1,5 +1,7 @@
+import asyncio
 import datetime
-from contextlib import asynccontextmanager
+import logging
+from contextlib import asynccontextmanager, suppress
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, status
@@ -10,7 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_converter_service.config import settings
 from video_converter_service.engine import engine, get_session
 from video_converter_service.models import Base, Outbox, Video, VideoFormat
+from video_converter_service.relay import outbox_relay_worker
 from video_converter_service.storage import detect_format, save_upload
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s: %(message)s")
 
 
 @asynccontextmanager
@@ -18,7 +23,11 @@ async def lifespan(app: FastAPI):
     settings.video_dir.mkdir(parents=True, exist_ok=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    relay_task = asyncio.create_task(outbox_relay_worker())
     yield
+    relay_task.cancel()
+    with suppress(asyncio.CancelledError):
+        await relay_task
     await engine.dispose()
 
 

@@ -49,4 +49,3 @@ class Outbox(Base):
     event_type: Mapped[str]
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    published_at: Mapped[datetime.datetime | None]  # NULL = not sent to RabbitMQ yet
