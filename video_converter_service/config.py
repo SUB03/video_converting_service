@@ -9,7 +9,6 @@ class Settings(BaseSettings):
 
     database_url: PostgresDsn
     rabbitmq_url: AmqpDsn
-    video_dir: Path = Path("/data/videos")
     db_echo: bool = False
 
 
