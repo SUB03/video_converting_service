@@ -1,5 +1,7 @@
 # test_payment_system
 
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/SUB03/video_converting_service/badges/coverage.json)](https://github.com/SUB03/video_converting_service/actions/workflows/tests.yml)
+
 A learning project. It currently contains a FastAPI video converter service backed by PostgreSQL and RabbitMQ, and a TanStack Start frontend for uploading videos and watching conversion progress.
 
 ## Services
@@ -72,6 +74,23 @@ npm run dev                      # http://localhost:3000
 ```
 
 Video conversion needs `ffmpeg` installed on your machine.
+
+## Tests
+
+The backend tests run against a real PostgreSQL (in a separate `video_converter_test` database, created automatically) with RabbitMQ mocked. The worker tests also need `ffmpeg` installed; they are skipped without it.
+
+```bash
+pip install -r requirements-dev.txt
+docker compose up -d postgres
+pytest            # add --cov for a coverage report
+```
+
+Set `TEST_DATABASE_URL` to use a different database; its name must end in `_test`, because the tests drop and recreate the tables.
+
+GitHub Actions ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs on every push and pull request:
+
+- **backend**: the pytest suite on Python 3.13 with a Postgres 17 service and ffmpeg, with coverage. On pushes to `main` it writes the coverage badge data to the `badges` branch; the badge at the top of this README reads it via shields.io.
+- **frontend**: `npm ci`, `tsc --noEmit` and `npm run build`
 
 ## Configuration
 
