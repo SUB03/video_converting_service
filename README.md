@@ -1,5 +1,3 @@
-# test_payment_system
-
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/SUB03/video_converting_service/badges/coverage.json)](https://github.com/SUB03/video_converting_service/actions/workflows/tests.yml)
 
 A learning project. It currently contains a FastAPI video converter service backed by PostgreSQL and RabbitMQ, and a TanStack Start frontend for uploading videos and watching conversion progress.
