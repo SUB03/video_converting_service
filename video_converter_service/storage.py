@@ -6,9 +6,15 @@ from typing import BinaryIO
 
 from fastapi import HTTPException, status
 
+from video_converter_service.config import settings
 from video_converter_service.models import VideoFormat
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
+CONVERTED_DIR = settings.video_dir / "converted"
+
+
+def converted_path(job_id: str, fmt: VideoFormat) -> Path:
+    return CONVERTED_DIR / f"{job_id}.{fmt}"
 
 
 def detect_format(filename: str | None) -> VideoFormat:

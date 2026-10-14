@@ -17,7 +17,6 @@ class Base(DeclarativeBase):
     pass
 
 class VideoFormat(enum.StrEnum):
-    WAV = "wav"
     MP4 = "mp4"
     WEBM = "webm"
     MKV = "mkv"

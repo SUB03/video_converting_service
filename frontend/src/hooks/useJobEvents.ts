@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
-import { jobEventsUrl } from "#/lib/api";
+import { apiUrl, jobEventsUrl } from "#/lib/api";
 
-export type JobStatus = "idle" | "connecting" | "running" | "done" | "error";
+export type StreamStatus = "idle" | "connecting" | "running" | "done" | "error";
+export type JobStatus = "pending" | "processing";
+export type ConvertedFile = { format: string; url: string };
 
 export type JobEventsState = {
-	status: JobStatus;
-	percent: number;
-	url?: string;
+	status: StreamStatus;
+	jobStatus?: JobStatus;
+	files: ConvertedFile[];
 	error?: string;
 	log: string[];
 };
 
-const initialState: JobEventsState = { status: "idle", percent: 0, log: [] };
+const initialState: JobEventsState = { status: "idle", files: [], log: [] };
 
 /**
  * Subscribes to the SSE stream of a conversion job.
- * Expects `progress` {percent}, `done` {url?} and `error` {message} events.
+ * Expects `status` {status}, `done` {files: [{format, url}]} and `error` {message} events.
  */
 export function useJobEvents(jobId: string | null): JobEventsState {
 	const [state, setState] = useState<JobEventsState>(initialState);
@@ -43,16 +45,20 @@ export function useJobEvents(jobId: string | null): JobEventsState {
 			append("connected to event stream");
 		};
 
-		source.addEventListener("progress", (e) => {
-			const { percent } = JSON.parse(dataOf(e)) as { percent: number };
-			setState((s) => ({ ...s, status: "running", percent }));
-			append(`progress ${percent}%`);
+		source.addEventListener("status", (e) => {
+			const { status } = JSON.parse(dataOf(e)) as { status: JobStatus };
+			setState((s) => ({ ...s, status: "running", jobStatus: status }));
+			append(`status ${status}`);
 		});
 
 		source.addEventListener("done", (e) => {
-			const { url } = JSON.parse(dataOf(e)) as { url?: string };
-			setState((s) => ({ ...s, status: "done", percent: 100, url }));
-			append(`done ${dataOf(e)}`);
+			const { files } = JSON.parse(dataOf(e)) as { files: ConvertedFile[] };
+			setState((s) => ({
+				...s,
+				status: "done",
+				files: files.map((f) => ({ ...f, url: apiUrl(f.url) })),
+			}));
+			append(`done: ${files.map((f) => f.format).join(", ")}`);
 			source.close();
 		});
 

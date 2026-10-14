@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { type DragEvent, useState } from "react";
 import { useJobEvents } from "#/hooks/useJobEvents";
-import { uploadVideo } from "#/lib/api";
+import { uploadVideo, VIDEO_FORMATS, type VideoFormat } from "#/lib/api";
 
 export const Route = createFileRoute("/")({ component: UploadPage });
 
@@ -11,9 +11,17 @@ function UploadPage() {
 	const [dragOver, setDragOver] = useState(false);
 	const [uploadPercent, setUploadPercent] = useState(0);
 	const [jobId, setJobId] = useState<string | null>(null);
+	const [targetFormats, setTargetFormats] = useState<VideoFormat[]>(["mp4"]);
+
+	const toggleFormat = (format: VideoFormat) =>
+		setTargetFormats((current) =>
+			current.includes(format)
+				? current.filter((f) => f !== format)
+				: [...current, format],
+		);
 
 	const upload = useMutation({
-		mutationFn: (f: File) => uploadVideo(f, setUploadPercent),
+		mutationFn: (f: File) => uploadVideo(f, targetFormats, setUploadPercent),
 		onMutate: () => {
 			setUploadPercent(0);
 			setJobId(null);
@@ -79,9 +87,33 @@ function UploadPage() {
 						)}
 					</label>
 
+					<fieldset className="mt-4">
+						<legend className="mb-2 text-sm text-zinc-500">Convert to</legend>
+						<div className="flex flex-wrap gap-2">
+							{VIDEO_FORMATS.map((format) => (
+								<label
+									key={format}
+									className={`cursor-pointer rounded-md border px-3 py-1 text-sm transition-colors ${
+										targetFormats.includes(format)
+											? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+											: "border-zinc-300 dark:border-zinc-700"
+									}`}
+								>
+									<input
+										type="checkbox"
+										className="sr-only"
+										checked={targetFormats.includes(format)}
+										onChange={() => toggleFormat(format)}
+									/>
+									.{format}
+								</label>
+							))}
+						</div>
+					</fieldset>
+
 					<button
 						type="submit"
-						disabled={!file || upload.isPending}
+						disabled={!file || targetFormats.length === 0 || upload.isPending}
 						className="mt-4 w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{upload.isPending ? "Uploading…" : "Upload"}
@@ -109,9 +141,24 @@ function UploadPage() {
 					<section className="mt-5">
 						<ProgressBar
 							label="Conversion"
-							percent={job.percent}
+							percent={
+								job.status === "done" ||
+								job.status === "error" ||
+								job.jobStatus === "processing"
+									? 100
+									: 0
+							}
 							state={job.status}
-							waiting={job.status === "connecting"}
+							indeterminate={
+								job.jobStatus === "processing" && job.status === "running"
+							}
+							text={
+								job.status === "done"
+									? "done"
+									: job.status === "error"
+										? "failed"
+										: (job.jobStatus ?? "waiting…")
+							}
 						/>
 						<p className="mt-4 break-all text-sm text-zinc-500">
 							Job:{" "}
@@ -119,14 +166,23 @@ function UploadPage() {
 						</p>
 
 						{job.status === "done" && (
-							<p className="mt-2 font-semibold text-green-600 dark:text-green-400">
-								Done.{" "}
-								{job.url && (
-									<a href={job.url} className="text-blue-600 underline">
-										Download
-									</a>
-								)}
-							</p>
+							<div className="mt-3">
+								<p className="font-semibold text-green-600 dark:text-green-400">
+									Done.
+								</p>
+								<div className="mt-2 flex flex-wrap gap-2">
+									{job.files.map((f) => (
+										<a
+											key={f.format}
+											href={f.url}
+											download
+											className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+										>
+											Download .{f.format}
+										</a>
+									))}
+								</div>
+							</div>
 						)}
 						{job.status === "error" && (
 							<p className="mt-2 font-semibold text-red-600 dark:text-red-400">
@@ -148,12 +204,14 @@ function ProgressBar({
 	label,
 	percent,
 	state,
-	waiting = false,
+	text,
+	indeterminate = false,
 }: {
 	label: string;
 	percent: number;
 	state: string;
-	waiting?: boolean;
+	text?: string;
+	indeterminate?: boolean;
 }) {
 	const color =
 		state === "error"
@@ -166,11 +224,11 @@ function ProgressBar({
 		<div>
 			<div className="mb-1.5 flex justify-between text-sm text-zinc-500">
 				<span>{label}</span>
-				<span>{waiting ? "waiting…" : `${Math.round(percent)}%`}</span>
+				<span>{text ?? `${Math.round(percent)}%`}</span>
 			</div>
 			<div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
 				<div
-					className={`h-full transition-all duration-200 ${color}`}
+					className={`h-full transition-all duration-200 ${color} ${indeterminate ? "animate-pulse" : ""}`}
 					style={{ width: `${percent}%` }}
 				/>
 			</div>
