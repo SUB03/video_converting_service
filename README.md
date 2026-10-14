@@ -1,4 +1,5 @@
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/SUB03/video_converting_service/badges/coverage.json)](https://github.com/SUB03/video_converting_service/actions/workflows/tests.yml)
+[![Tests](https://github.com/SUB03/video_converting_service/actions/workflows/tests.yml/badge.svg)](https://github.com/SUB03/video_converting_service/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/SUB03/video_converting_service/graph/badge.svg)](https://codecov.io/gh/SUB03/video_converting_service)
 
 A learning project. It currently contains a FastAPI video converter service backed by PostgreSQL and RabbitMQ, and a TanStack Start frontend for uploading videos and watching conversion progress.
 
@@ -87,7 +88,7 @@ Set `TEST_DATABASE_URL` to use a different database; its name must end in `_test
 
 GitHub Actions ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs on every push and pull request:
 
-- **backend**: the pytest suite on Python 3.13 with a Postgres 17 service and ffmpeg, with coverage. On pushes to `main` it writes the coverage badge data to the `badges` branch; the badge at the top of this README reads it via shields.io.
+- **backend**: the pytest suite on Python 3.13 with a Postgres 17 service and ffmpeg; the coverage report is uploaded to [Codecov](https://codecov.io/gh/SUB03/video_converting_service)
 - **frontend**: `npm ci`, `tsc --noEmit` and `npm run build`
 
 ## Configuration

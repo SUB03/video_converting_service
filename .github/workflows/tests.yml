@@ -7,8 +7,6 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # push the coverage badge to the `badges` branch
     services:
       postgres:
         image: postgres:17-alpine
@@ -43,24 +41,14 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest -v --cov --cov-report=term --cov-report=json:coverage.json
+        run: pytest -v --cov --cov-report=term --cov-report=xml:coverage.xml
 
-      # shields.io renders the README badge from badges/coverage.json on the `badges` branch
-      - name: Publish coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir badge
-          python .github/scripts/coverage_badge.py coverage.json badge/coverage.json
-          cd badge
-          git init -q -b badges
-          git add coverage.json
-          git -c user.name="github-actions[bot]" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "Coverage badge for ${GITHUB_SHA::7}"
-          # Single-commit branch, replaced on every run
-          git push --force -q "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true
 
   frontend:
     runs-on: ubuntu-latest
